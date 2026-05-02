@@ -114,7 +114,7 @@ const CoursePage = () => {
 		() =>
 			modules.reduce(
 				(acc, m) =>
-					acc + m.lessons.filter((l) => l.status === "completed").length,
+					acc + m.lessons.filter((l) => l.status === "complete").length,
 				0
 			),
 		[modules]
@@ -170,8 +170,8 @@ const CoursePage = () => {
 							Building your course
 						</p>
 						<p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-							We&apos;re generating modules, lessons, and quizzes tailored to your
-							goal. This takes about 30–60 seconds.
+							We&apos;re generating modules, lessons, and quizzes tailored to
+							your goal. This takes about 30–60 seconds.
 						</p>
 					</div>
 
@@ -322,7 +322,7 @@ const CoursePage = () => {
 					>
 						{modules.map((mod, idx) => {
 							const modCompleted = mod.lessons.filter(
-								(l) => l.status === "completed"
+								(l) => l.status === "complete"
 							).length;
 							const modTotal = mod.lessons.length;
 							const allDone = modCompleted === modTotal;
@@ -366,7 +366,7 @@ const CoursePage = () => {
 												className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-blue-50 transition group"
 											>
 												<div className="flex items-center gap-3">
-													{lesson.status === "completed" ? (
+													{lesson.status === "complete" ? (
 														<FiCheckCircle
 															size={16}
 															className="text-blue-500 shrink-0"
@@ -389,12 +389,12 @@ const CoursePage = () => {
 												</div>
 												<span
 													className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${
-														lesson.status === "completed"
+														lesson.status === "complete"
 															? "bg-blue-50 text-blue-600"
 															: "bg-gray-50 text-gray-400"
 													}`}
 												>
-													{lesson.status === "completed"
+													{lesson.status === "complete"
 														? "Completed"
 														: "Pending"}
 												</span>

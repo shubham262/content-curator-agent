@@ -16,7 +16,7 @@ import {
 import { HiSparkles } from "react-icons/hi2";
 import { MdOutlineQuiz } from "react-icons/md";
 import { Drawer, message } from "antd";
-import { getCourse } from "@/service/course";
+import { getCourse, markLessonComplete } from "@/service/course";
 import MobileLessonDrawer from "@/components/MobileLessonDrawer";
 import LessonList from "@/components/LessonList";
 import QuizView from "@/components/QuizView";
@@ -92,6 +92,20 @@ const ModulePage = () => {
 		if (activeLessonIndex < info.lessons.length - 1)
 			goToLesson(info.lessons[activeLessonIndex + 1]._id);
 	};
+
+	const markComplete = useCallback(async () => {
+		const status = activeLesson?.status;
+		if (status !== "completed") {
+			try {
+				await markLessonComplete(courseId, info.activeLessonId);
+			} catch (error) {
+				console.error("Error marking lesson as complete:", error);
+				message.error("Failed to mark lesson as complete. Please try again.");
+				return;
+			}
+		}
+		console.log("Marking lesson as complete. Current status:", status);
+	}, [info?.activeLessonId, activeLesson]);
 
 	if (info.loading) return <ModuleLoader />;
 
@@ -243,10 +257,13 @@ const ModulePage = () => {
 					<span className="hidden sm:inline">Previous</span>
 				</button>
 
-				<button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 md:px-6 py-2.5 rounded-xl transition-all shadow-sm shadow-blue-100">
+				{activeLesson?.status!=="complete"?<button
+					onClick={markComplete}
+					className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 md:px-6 py-2.5 rounded-xl transition-all shadow-sm shadow-blue-100"
+				>
 					<FiCheckCircle size={15} />
 					<span className="hidden sm:inline">Mark as</span> Complete
-				</button>
+				</button>:""}
 
 				<button
 					onClick={goNext}

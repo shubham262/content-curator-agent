@@ -1,6 +1,6 @@
 import Markdown from "./MarkdownRender";
 
-function normalizeMarkdown(content) {
+const normalizeMarkdown = (content) => {
 	if (!content) return "";
 	return (
 		content
@@ -10,7 +10,7 @@ function normalizeMarkdown(content) {
 			.replace(/(\n[*\-\d][^\n]*)\n\n(?=[*\-\d])/g, "$1\n")
 			.replace(/(\n\d+\.[^\n]*)\n\n(?=\d+\.)/g, "$1\n")
 	);
-}
+};
 
 const ContentView = ({ content }) => (
 	<div className="max-w-none py-6">

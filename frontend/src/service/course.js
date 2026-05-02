@@ -11,6 +11,19 @@ export const createCourse = async (payload) => {
 		);
 	}
 };
+export const markLessonComplete = async (courseId, lessonId) => {
+	try {
+		const { data } = await api.put(
+			`/api/mark-lesson-complete/${courseId}/${lessonId}`
+		);
+
+		return data;
+	} catch (error) {
+		throw new Error(
+			error?.message || "Something went wrong while markLessonComplete"
+		);
+	}
+};
 export const getCourse = async (courseId) => {
 	try {
 		const { data } = await api.get(`/api/fetch-course/${courseId}`);
