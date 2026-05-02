@@ -1,5 +1,5 @@
 "use client";
-import React, { memo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { Select } from "antd";
 import { HiSparkles } from "react-icons/hi2";
 import { FiTarget, FiZap, FiBookOpen } from "react-icons/fi";
@@ -15,9 +15,35 @@ const Landing = () => {
 		level: "intermediate",
 		loading: false,
 		error: "",
+		file: null,
 	});
 
 	const set = (key, value) => setInfo((prev) => ({ ...prev, [key]: value }));
+
+	const fileToBase64 = (file) => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => {
+				const base64 = reader.result?.split(",")?.[1];
+				resolve(base64);
+			};
+
+			reader.onerror = reject;
+
+			reader.readAsDataURL(file);
+		});
+	};
+
+	const handleFileUpload = useCallback(async (e) => {
+		try {
+			const file = e.target.files?.[0];
+
+			const base64 = await fileToBase64(file);
+			setInfo((prev) => ({ ...prev, file: base64 }));
+		} catch (error) {
+			message.error("Something went wrong");
+		}
+	}, []);
 
 	const handleGenerate = async () => {
 		if (!info.learningObjective.trim()) {
@@ -31,8 +57,9 @@ const Landing = () => {
 				learningObjective: info.learningObjective,
 				level: info.level,
 			};
+			if (info.file) payload.file = info.file;
 			const { data } = await createCourse(payload);
-			console.log("Course creation response:", data);
+
 			return router.push(`/course/${data?.courseId}`);
 		} catch (err) {
 			set("error", "Failed to connect. Please try again.");
