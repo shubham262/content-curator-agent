@@ -3,7 +3,7 @@ import courseQueue from "../queue/index.js";
 const { Course, Module, Lesson } = db;
 export const createCourseController = async (req, res) => {
 	try {
-		const { learningObjective, level = "intermediate" } = req.body || {};
+		const { learningObjective, level = "intermediate", file } = req.body || {};
 		if (!learningObjective) {
 			return res.status(400).json({
 				success: false,
@@ -31,6 +31,7 @@ export const createCourseController = async (req, res) => {
 			courseId: course._id.toString(),
 			learningObjective: trimmed,
 			level,
+			file,
 		});
 
 		return res.status(202).json({

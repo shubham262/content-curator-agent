@@ -1,12 +1,29 @@
 import { model } from "../config/gemini.js";
 
-const callGemini = async (prompt, purpose) => {
+const callGemini = async (prompt, purpose, fileBase64 = null) => {
 	let lastError;
 	for (let attempt = 1; attempt <= 2; attempt++) {
 		try {
-			const result = await model.generateContent(prompt);
+			
+			let input = prompt;
+			if (fileBase64) {
+				input = [
+					{ text: prompt },
+					{
+						inlineData: {
+							mimeType: "application/pdf",
+							data: fileBase64,
+						},
+					},
+				];
+			}
+
+			const result = await model.generateContent(input);
 			const text = result.response.text();
-			return JSON.parse(text);
+
+			// Clean markdown blocks if the model hallucinates them
+			const cleanText = text.replace(/```json\n?|```/g, "").trim();
+			return JSON.parse(cleanText);
 		} catch (err) {
 			lastError = err;
 			if (attempt === 1) {
@@ -23,7 +40,6 @@ const callGemini = async (prompt, purpose) => {
 	);
 };
 
-// Level only controls tone + depth — never quantity
 const LEVEL_CONFIG = {
 	beginner:
 		"Use simple language, relatable analogies, and beginner-friendly examples. Define every term on first use. Assume zero prior knowledge.",
@@ -36,16 +52,22 @@ const LEVEL_CONFIG = {
 // ─── Step 1: Course Outline ────────────────────────────────────────────────
 export const generateCourseOutline = async (
 	learningObjective,
-	level = "intermediate"
+	level = "intermediate",
+	file = null
 ) => {
 	const depthInstruction = LEVEL_CONFIG[level] || LEVEL_CONFIG.intermediate;
+
+	
+	const fileInstruction = file
+		? "\nCRITICAL: A PDF document is attached. You MUST use the content, structure, and domain context from this PDF to form the basis of the course outline."
+		: "";
 
 	const prompt = `
 You are a world-class curriculum designer.
 
 Learning Objective: "${learningObjective}"
 Level: ${level}
-Tone & Depth: ${depthInstruction}
+Tone & Depth: ${depthInstruction}${fileInstruction}
 
 Design a thorough, complete course outline. Decide the number of modules yourself based on 
 what the topic genuinely requires to be covered well — do not artificially limit or pad.
@@ -65,16 +87,22 @@ Return ONLY valid JSON — no markdown fences, no extra keys, no explanation:
   ]
 }
 `;
-	return callGemini(prompt, "course-outline");
+	return callGemini(prompt, "course-outline", file);
 };
 
-// ─── Step 2: Lessons + Quiz per module ────────────────────────────────────
+
 export const generateModuleLessons = async (
 	courseTitle,
 	module,
-	level = "intermediate"
+	level = "intermediate",
+	file = null
 ) => {
 	const depthInstruction = LEVEL_CONFIG[level] || LEVEL_CONFIG.intermediate;
+
+
+	const fileInstruction = file
+		? "\nCRITICAL: A PDF document is attached. You MUST extract technical context, examples, definitions, and workflows from this PDF to write the lesson content."
+		: "";
 
 	const prompt = `
 You are a world-class technical educator and content writer.
@@ -83,7 +111,7 @@ Course: "${courseTitle}"
 Module ${module.order}: "${module.title}"
 Module goal: "${module.description}"
 Level: ${level}
-Tone & Depth: ${depthInstruction}
+Tone & Depth: ${depthInstruction}${fileInstruction}
 
 Decide the number of lessons yourself based on what this module genuinely needs to cover it well.
 Typically 3 to 5 lessons — use your judgment. Do not pad or cut short.
@@ -130,5 +158,5 @@ Return ONLY valid JSON — no markdown fences, no extra keys:
   ]
 }
 `;
-	return callGemini(prompt, `module-${module.order}-lessons`);
+	return callGemini(prompt, `module-${module.order}-lessons`, file);
 };

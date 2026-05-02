@@ -11,7 +11,7 @@ const { Course, Module, Lesson } = db;
 const courseWorker = new Worker(
 	"course-generation",
 	async (job) => {
-		const { courseId, learningObjective, level } = job.data;
+		const { courseId, learningObjective, level, file } = job.data;
 
 		console.log(
 			`[Worker] Starting course generation for courseId: ${courseId}`
@@ -19,18 +19,19 @@ const courseWorker = new Worker(
 
 		try {
 			// ── Step 1: Generate outline ─────────────────────────────────────
-
-			const outline = await generateCourseOutline(learningObjective, level);
+			const outline = await generateCourseOutline(
+				learningObjective,
+				level,
+				file
+			);
 			const { title, description, modules: rawModules = [] } = outline;
 
-			// Patch course with title + description now that we have them
 			await Course.findByIdAndUpdate(courseId, { title, description });
 
 			// ── Step 2: For each module → generate lessons ───────────────────
 			for (let i = 0; i < rawModules.length; i++) {
 				const rawModule = rawModules[i];
 
-				// Save module to DB
 				const savedModule = await Module.create({
 					courseId,
 					order: rawModule.order,
@@ -38,14 +39,13 @@ const courseWorker = new Worker(
 					description: rawModule.description,
 				});
 
-				// Generate lessons + quiz for this module
 				const { lessons: rawLessons = [] } = await generateModuleLessons(
 					title,
 					rawModule,
-					level
+					level,
+					file
 				);
 
-				// Save each lesson
 				const lessonDocs = rawLessons.map((lesson) => ({
 					moduleId: savedModule._id,
 					courseId,
@@ -69,7 +69,6 @@ const courseWorker = new Worker(
 			await Course.findByIdAndUpdate(courseId, { status: "complete" });
 			console.log(`[Worker] Course complete: ${courseId}`);
 		} catch (error) {
-			// Mark course as failed so frontend can surface it
 			await Course.findByIdAndUpdate(courseId, {
 				status: "failed",
 				error: error.message,

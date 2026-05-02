@@ -6,7 +6,7 @@ import "./src/workers/index.js";
 await handleMongoDbConnection();
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 app.use("/api", courseRoutes);
 
 const PORT = process.env.PORT || 3001;
