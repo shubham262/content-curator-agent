@@ -13,7 +13,7 @@ const MobileLessonDrawer = ({
 		open={open}
 		onClose={onClose}
 		placement="left"
-		width={280}
+		size={280}
 		closable={false}
 		styles={{ body: { padding: 0 }, header: { display: "none" } }}
 	>
