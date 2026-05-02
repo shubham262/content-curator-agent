@@ -1,9 +1,30 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+"use client";
+import { submitLessonQuiz } from "@/service/course";
+import { message } from "antd";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FiCheck, FiX } from "react-icons/fi";
 import { MdOutlineQuiz } from "react-icons/md";
 
-const QuizView = ({ quiz }) => {
-	const [info, setInfo] = useState({ answers: {}, submitted: false, score: 0 });
+const QuizView = ({ quiz, lessonId, handleQuizSubmit, userResponses }) => {
+	const params = useParams();
+	const { courseId } = params || {};
+	const [info, setInfo] = useState({
+		answers: { ...(userResponses || {}) },
+		submitted: userResponses ? true : false,
+		score: 0,
+	});
+
+	useEffect(() => {
+		if (userResponses) {
+			let score = 0;
+			quiz.forEach((q, i) => {
+				if (userResponses[i] === q.correctOptionIndex) score++;
+			});
+			setInfo((prev) => ({ ...prev, score }));
+		}
+	}, [userResponses, quiz]);
 
 	const handleSelect = (qIdx, oIdx) => {
 		if (info.submitted) return;
@@ -13,12 +34,19 @@ const QuizView = ({ quiz }) => {
 		}));
 	};
 
-	const handleSubmit = () => {
-		let score = 0;
-		quiz.forEach((q, i) => {
-			if (info.answers[i] === q.correctOptionIndex) score++;
-		});
-		setInfo((prev) => ({ ...prev, submitted: true, score }));
+	const handleSubmit = async () => {
+		try {
+			await submitLessonQuiz(courseId, lessonId, { answer: info.answers });
+			await handleQuizSubmit();
+			let score = 0;
+			quiz.forEach((q, i) => {
+				if (info.answers[i] === q.correctOptionIndex) score++;
+			});
+			setInfo((prev) => ({ ...prev, submitted: true, score }));
+		} catch (error) {
+			console.error("Error submitting quiz:", error);
+			message.error("Failed to submit quiz. Please try again.");
+		}
 	};
 
 	const handleRetry = () =>

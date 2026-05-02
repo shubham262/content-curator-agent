@@ -127,3 +127,39 @@ export const updateLessonProgress = async (req, res) => {
 		});
 	}
 };
+export const submitQuiz = async (req, res) => {
+	try {
+		const { courseId, lessonId } = req.params || {};
+		const { answer = {} } = req.body || {};
+		if (!courseId || !lessonId) {
+			return res.status(400).json({
+				success: false,
+				error: "Course ID and lessonId is required",
+			});
+		}
+
+		const lesson = await Lesson.findOneAndUpdate(
+			{ _id: lessonId, courseId },
+			{ userQuizResponse: answer },
+			{ returnDocument: "after" }
+		);
+
+		if (!lesson) {
+			return res.status(404).json({
+				success: false,
+				error: "Lesson not found",
+			});
+		}
+
+		return res.status(200).json({
+			success: true,
+			data: lesson,
+		});
+	} catch (error) {
+		console.error("submitQuiz Error:", error);
+		return res.status(500).json({
+			success: false,
+			error: error.message || "Failed to update submitQuiz",
+		});
+	}
+};

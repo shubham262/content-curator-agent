@@ -49,7 +49,9 @@ const ModulePage = () => {
 				loading: false,
 				module: currentModule,
 				lessons: currentModule?.lessons || [],
-				activeLessonId: currentModule?.lessons?.[0]?._id || null,
+				activeLessonId: info?.activeLessonId
+					? info?.activeLessonId
+					: currentModule?.lessons?.[0]?._id || null,
 			}));
 		} catch (error) {
 			message.error("Failed to fetch course data. Please try again.");
@@ -57,7 +59,7 @@ const ModulePage = () => {
 		} finally {
 			setInfo((prev) => ({ ...prev, loading: false }));
 		}
-	}, [courseId, moduleId]);
+	}, [courseId, moduleId, info?.activeLessonId]);
 
 	useEffect(() => {
 		fetchCourseData();
@@ -240,6 +242,9 @@ const ModulePage = () => {
 							<QuizView
 								key={activeLesson?._id}
 								quiz={activeLesson?.quiz || []}
+								lessonId={activeLesson?._id}
+								handleQuizSubmit={fetchCourseData}
+								userResponses={activeLesson?.userQuizResponse || null}
 							/>
 						)}
 					</div>
@@ -257,13 +262,17 @@ const ModulePage = () => {
 					<span className="hidden sm:inline">Previous</span>
 				</button>
 
-				{activeLesson?.status!=="complete"?<button
-					onClick={markComplete}
-					className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 md:px-6 py-2.5 rounded-xl transition-all shadow-sm shadow-blue-100"
-				>
-					<FiCheckCircle size={15} />
-					<span className="hidden sm:inline">Mark as</span> Complete
-				</button>:""}
+				{activeLesson?.status !== "complete" ? (
+					<button
+						onClick={markComplete}
+						className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 md:px-6 py-2.5 rounded-xl transition-all shadow-sm shadow-blue-100"
+					>
+						<FiCheckCircle size={15} />
+						<span className="hidden sm:inline">Mark as</span> Complete
+					</button>
+				) : (
+					""
+				)}
 
 				<button
 					onClick={goNext}

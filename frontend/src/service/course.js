@@ -24,6 +24,21 @@ export const markLessonComplete = async (courseId, lessonId) => {
 		);
 	}
 };
+
+export const submitLessonQuiz = async (courseId, lessonId, payload) => {
+	try {
+		const { data } = await api.put(
+			`/api/submit-quiz/${courseId}/${lessonId}`,
+			payload
+		);
+
+		return data;
+	} catch (error) {
+		throw new Error(
+			error?.message || "Something went wrong while submitLessonQuiz"
+		);
+	}
+};
 export const getCourse = async (courseId) => {
 	try {
 		const { data } = await api.get(`/api/fetch-course/${courseId}`);
