@@ -2,7 +2,14 @@
 import React, { memo, useCallback, useState } from "react";
 import { Select } from "antd";
 import { HiSparkles } from "react-icons/hi2";
-import { FiTarget, FiZap, FiBookOpen } from "react-icons/fi";
+import {
+	FiTarget,
+	FiZap,
+	FiBookOpen,
+	FiPaperclip,
+	FiFileText,
+	FiX,
+} from "react-icons/fi";
 import { createCourse } from "@/service/course";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +23,7 @@ const Landing = () => {
 		loading: false,
 		error: "",
 		file: null,
+		fileName: "", 
 	});
 
 	const set = (key, value) => setInfo((prev) => ({ ...prev, [key]: value }));
@@ -37,13 +45,29 @@ const Landing = () => {
 	const handleFileUpload = useCallback(async (e) => {
 		try {
 			const file = e.target.files?.[0];
+			if (!file) return;
+
+			
+			if (file.type !== "application/pdf") {
+				set("error", "Please upload a valid PDF file.");
+				return;
+			}
 
 			const base64 = await fileToBase64(file);
-			setInfo((prev) => ({ ...prev, file: base64 }));
+			setInfo((prev) => ({
+				...prev,
+				file: base64,
+				fileName: file.name,
+				error: "", 
+			}));
 		} catch (error) {
-			message.error("Something went wrong");
+			set("error", "Something went wrong while uploading the file.");
 		}
 	}, []);
+
+	const removeFile = () => {
+		setInfo((prev) => ({ ...prev, file: null, fileName: "" }));
+	};
 
 	const handleGenerate = async () => {
 		if (!info.learningObjective.trim()) {
@@ -125,9 +149,6 @@ const Landing = () => {
 							onChange={(e) => set("learningObjective", e.target.value)}
 							className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
 						/>
-						{info.error && (
-							<span className="text-red-500 text-xs mt-1">{info.error}</span>
-						)}
 					</div>
 
 					{/* Level */}
@@ -155,6 +176,59 @@ const Landing = () => {
 							</Option>
 						</Select>
 					</div>
+
+					{/* File Upload UI */}
+					<div className="flex flex-col gap-2">
+						<label className="text-sm font-semibold text-gray-700">
+							Source Material (Optional)
+						</label>
+
+						{!info.fileName ? (
+							<div className="relative border-2 border-dashed border-gray-200 rounded-xl px-4 py-4 hover:bg-gray-50 hover:border-blue-300 transition-colors cursor-pointer flex flex-col items-center justify-center gap-1 group">
+								<input
+									type="file"
+									accept="application/pdf"
+									onChange={handleFileUpload}
+									className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+								/>
+								<div className="flex items-center gap-2">
+									<FiPaperclip
+										className="text-gray-400 group-hover:text-blue-500 transition-colors"
+										size={18}
+									/>
+									<span className="text-sm text-gray-500 group-hover:text-blue-600 font-medium transition-colors">
+										Upload a PDF
+									</span>
+								</div>
+								<span className="text-xs text-gray-400">Max 1 file</span>
+							</div>
+						) : (
+							<div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+								<div className="flex items-center gap-3 overflow-hidden">
+									<div className="w-8 h-8 rounded bg-white flex items-center justify-center shrink-0">
+										<FiFileText className="text-blue-600" size={16} />
+									</div>
+									<span className="text-sm text-blue-900 font-medium truncate">
+										{info.fileName}
+									</span>
+								</div>
+								<button
+									onClick={removeFile}
+									className="text-blue-400 hover:text-blue-600 hover:bg-white rounded-full p-1.5 transition-colors shrink-0"
+									title="Remove file"
+								>
+									<FiX size={16} />
+								</button>
+							</div>
+						)}
+					</div>
+
+					{/* Global Error Display */}
+					{info.error && (
+						<div className="bg-red-50 border border-red-100 text-red-600 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+							<span>{info.error}</span>
+						</div>
+					)}
 
 					{/* Generate button */}
 					<button
