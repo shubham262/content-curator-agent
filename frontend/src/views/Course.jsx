@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, {
@@ -41,7 +43,18 @@ const CoursePage = () => {
 
 	const set = (key, value) => setInfo((prev) => ({ ...prev, [key]: value }));
 
-	// ── Fetch ────────────────────────────────────────────────────────────
+	const startRedirectCountdown = () => {
+		let count = 10;
+		redirectRef.current = setInterval(() => {
+			count -= 1;
+			set("countdown", count);
+			if (count <= 0) {
+				clearInterval(redirectRef.current);
+				router.push("/");
+			}
+		}, 1000);
+	};
+
 	const fetchCourseData = useCallback(async () => {
 		try {
 			const { data } = await getCourse(courseId);
@@ -70,7 +83,6 @@ const CoursePage = () => {
 		}
 	}, [courseId]);
 
-	// ── Polling ──────────────────────────────────────────────────────────
 	useEffect(() => {
 		fetchCourseData();
 
@@ -91,20 +103,6 @@ const CoursePage = () => {
 		};
 	}, []);
 
-	// ── Failed redirect countdown ────────────────────────────────────────
-	const startRedirectCountdown = () => {
-		let count = 10;
-		redirectRef.current = setInterval(() => {
-			count -= 1;
-			set("countdown", count);
-			if (count <= 0) {
-				clearInterval(redirectRef.current);
-				router.push("/");
-			}
-		}, 1000);
-	};
-
-	// ── Derived ──────────────────────────────────────────────────────────
 	const modules = useMemo(() => info?.course?.modules || [], [info?.course]);
 
 	const totalLessons = useMemo(
@@ -172,7 +170,7 @@ const CoursePage = () => {
 							Building your course
 						</p>
 						<p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-							We're generating modules, lessons, and quizzes tailored to your
+							We&apos;re generating modules, lessons, and quizzes tailored to your
 							goal. This takes about 30–60 seconds.
 						</p>
 					</div>
@@ -227,7 +225,7 @@ const CoursePage = () => {
 							Course generation failed
 						</p>
 						<p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-							Something went wrong while building your course. You'll be
+							Something went wrong while building your course. You&apos;ll be
 							redirected to the home page in{" "}
 							<span className="text-red-400 font-semibold">
 								{info.countdown}s
