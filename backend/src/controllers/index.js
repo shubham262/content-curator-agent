@@ -27,11 +27,11 @@ export const createCourseController = async (req, res) => {
 			status: "generating",
 		});
 
-		await courseQueue.add("generate-course", {
-			courseId: course._id.toString(),
-			learningObjective: trimmed,
-			level,
-		});
+		// await courseQueue.add("generate-course", {
+		// 	courseId: course._id.toString(),
+		// 	learningObjective: trimmed,
+		// 	level,
+		// });
 
 		return res.status(202).json({
 			success: true,
