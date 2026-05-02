@@ -22,6 +22,11 @@ const lessonSchema = new Schema(
 		quiz: [quizQuestionSchema],
 		userQuizResponse: { type: Schema.Types.Mixed, default: {} },
 		metadata: { type: Schema.Types.Mixed, default: {} },
+		status: {
+			type: String,
+			enum: ["inProgress", "pending", "complete"],
+			default: "pending",
+		},
 	},
 	{ timestamps: true }
 );

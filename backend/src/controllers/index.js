@@ -1,5 +1,6 @@
-import { generateCourseOutline, generateModuleLessons } from "../helper/index.js";
-
+import db from "../models/index.js";
+import courseQueue from "../queue/index.js";
+const { Course } = db;
 export const createCourseController = async (req, res) => {
 	try {
 		const { learningObjective, level = "intermediate" } = req.body || {};
@@ -10,20 +11,32 @@ export const createCourseController = async (req, res) => {
 			});
 		}
 
-		const trimmed = learningObjective.trim();
-		const outline = await generateCourseOutline(trimmed);
-
-		const { title, description, modules = [] } = outline;
-
-		for (let i = 0; i < modules.length; i++) {
-			const module = modules[i];
-			const lessons = await generateModuleLessons(title, module);
-			modules[i].lessons = lessons;
+		const validLevels = ["beginner", "intermediate", "advanced"];
+		if (!validLevels.includes(level)) {
+			return res.status(400).json({
+				success: false,
+				error: `level must be one of: ${validLevels.join(", ")}`,
+			});
 		}
+		const trimmed = learningObjective.trim();
+		const course = await Course.create({
+			title: "Generating...",
+			description: "",
+			learningObjective: trimmed,
+			level,
+			status: "generating",
+		});
 
-		return res.status(200).json({
+		await courseQueue.add("generate-course", {
+			courseId: course._id.toString(),
+			learningObjective: trimmed,
+			level,
+		});
+
+		return res.status(202).json({
 			success: true,
-			data: { ...outline, modules },
+			message: "Course generation started",
+			data: { courseId: course._id },
 		});
 	} catch (error) {
 		console.error("Onboarding Error:", error);

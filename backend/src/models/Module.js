@@ -7,8 +7,14 @@ const moduleSchema = new Schema(
 		title: { type: String, required: true },
 		description: { type: String },
 		metadata: { type: Schema.Types.Mixed, default: {} },
+		status: {
+			type: String,
+			enum: ["inProgress", "pending", "complete"],
+			default: "pending",
+		},
 	},
 	{ timestamps: true }
 );
 
 const Module = mongoose.model("Module", moduleSchema);
+export default Module;
