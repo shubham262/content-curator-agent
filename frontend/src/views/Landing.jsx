@@ -3,7 +3,7 @@ import React, { memo, useState } from "react";
 import { Select } from "antd";
 import { HiSparkles } from "react-icons/hi2";
 import { FiTarget, FiZap, FiBookOpen } from "react-icons/fi";
-import { createCourse } from "@/service/brand";
+import { createCourse } from "@/service/course";
 import { useRouter } from "next/navigation";
 
 const { Option } = Select;
@@ -34,12 +34,6 @@ const Landing = () => {
 			const { data } = await createCourse(payload);
 			console.log("Course creation response:", data);
 			return router.push(`/course/${data?.courseId}`);
-			// if (data.success) {
-			// 	// redirect to course status page
-			// 	window.location.href = `/course/${data.data.courseId}`;
-			// } else {
-			// 	set("error", data.error || "Something went wrong");
-			// }
 		} catch (err) {
 			set("error", "Failed to connect. Please try again.");
 		} finally {

@@ -11,3 +11,12 @@ export const createCourse = async (payload) => {
 		);
 	}
 };
+export const getCourse = async (courseId) => {
+	try {
+		const { data } = await api.get(`/api/fetch-course/${courseId}`);
+
+		return data;
+	} catch (error) {
+		throw new Error(error?.message || "Something went wrong while getCourse");
+	}
+};
